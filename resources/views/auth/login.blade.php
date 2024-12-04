@@ -10,7 +10,7 @@
                     </div>
 
                     <div class="card-body">
-                        <!-- Zobrazenie chýb alebo správ -->
+                        <!-- Zobrazenie chýb -->
                         @if (session('error'))
                             <div class="alert alert-danger">
                                 {{ session('error') }}
@@ -48,7 +48,7 @@
                                 @enderror
                             </div>
 
-                            <!-- Zapamätať si ma -->
+                            <!-- Zapamätať si -->
                             <div class="form-check mb-3">
                                 <input class="form-check-input" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
                                 <label class="form-check-label" for="remember">

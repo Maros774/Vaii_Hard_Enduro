@@ -28,7 +28,7 @@
 
             // Kontrola, či sú všetky polia vyplnené
             if (!title.value.trim() || !content.value.trim()) {
-                e.preventDefault(); // Zrušenie odoslania formulára
+                e.preventDefault();
                 alert('Všetky polia sú povinné!');
             }
         });

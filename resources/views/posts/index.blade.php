@@ -45,7 +45,7 @@
         document.querySelector('#search').addEventListener('input', function() {
             const query = this.value;
 
-            // Posielame požiadavku na server
+            // Požiadavku na server
             fetch(`/posts/search?query=${query}`)
                 .then(response => response.json())
                 .then(data => {

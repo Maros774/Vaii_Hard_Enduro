@@ -7,26 +7,20 @@ use Illuminate\Http\Request;
 
 class PostController extends Controller
 {
-    /**
-     * Zobrazí všetky príspevky.
-     */
+    // Zobrazí všetky príspevky
     public function index()
     {
         $posts = Post::all();
         return view('posts.index', compact('posts'));
     }
 
-    /**
-     * Zobrazí formulár na vytvorenie nového príspevku.
-     */
+    // Zobrazí formulár na vytvorenie nového príspevku
     public function create()
     {
         return view('posts.create');
     }
 
-    /**
-     * Uloží nový príspevok do databázy.
-     */
+    // Uloží nový príspevok
     public function store(Request $request)
     {
         $validatedData = $request->validate([
@@ -41,33 +35,33 @@ class PostController extends Controller
         return redirect()->route('posts.index')->with('success', 'Príspevok bol úspešne vytvorený.');
     }
 
-    /**
-     * Zobrazí konkrétny príspevok.
-     */
-    public function show(Post $post)
+    // Zobrazí konkrétny príspevok
+    public function show($id)
     {
+        $post = Post::find($id);
+
+        if (!$post) {
+            abort(404, 'Príspevok neexistuje.');
+        }
+
         return view('posts.show', compact('post'));
     }
 
-    /**
-     * Zobrazí formulár na úpravu príspevku.
-     */
+    // Zobrazí formulár na úpravu príspevku
     public function edit(Post $post)
     {
         if ($post->user_id !== auth()->id()) {
-            abort(403, 'Nemáte právo upraviť tento príspevok.');
+            abort(403, 'Nemáte právo upravovať tento príspevok.');
         }
 
         return view('posts.edit', compact('post'));
     }
 
-    /**
-     * Aktualizuje príspevok v databáze.
-     */
+    // Aktualizuje príspevok
     public function update(Request $request, Post $post)
     {
         if ($post->user_id !== auth()->id()) {
-            abort(403, 'Nemáte právo na editáciu tohto príspevku.');
+            abort(403, 'Nemáte právo upravovať tento príspevok.');
         }
 
         $validatedData = $request->validate([
@@ -80,33 +74,27 @@ class PostController extends Controller
         return redirect()->route('posts.index')->with('success', 'Príspevok bol úspešne upravený.');
     }
 
-    /**
-     * Odstráni príspevok z databázy.
-     */
+    // Odstráni príspevok
     public function destroy(Post $post)
     {
         if ($post->user_id !== auth()->id()) {
-            abort(403, 'Nemáte právo vymazať tento príspevok.');
+            abort(403, 'Nemáte právo odstrániť tento príspevok.');
         }
 
         $post->delete();
 
-        return redirect()->route('posts.index')->with('success', 'Príspevok bol úspešne vymazaný.');
+        return redirect()->route('posts.index')->with('success', 'Príspevok bol úspešne odstránený.');
     }
 
-    /**
-     * Vyhľadáva príspevky podľa kľúčového slova.
-     */
+    // Vyhľadávanie príspevkov
     public function search(Request $request)
     {
-        $query = $request->get('query'); // Načítanie vyhľadávacieho dotazu
-        if (!$query) {
-            return response()->json([]); // Prázdne výsledky, ak nie je zadaný text
-        }
-
-        $posts = Post::where('title', 'LIKE', "%{$query}%")->get(); // Vyhľadávanie v názvoch príspevkov
-
-        return response()->json($posts); // Vrátenie výsledkov vo formáte JSON
+        $query = $request->query('query', '');
+        $posts = Post::where('title', 'LIKE', "%{$query}%")->get(['id', 'title']);
+        return response()->json(['data' => $posts]);
     }
+
+
+
 
 }

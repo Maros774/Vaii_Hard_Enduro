@@ -2,17 +2,21 @@
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PostController;
+use App\Http\Controllers\AboutController;
+use App\Http\Controllers\DashboardController;
 
 // Statické stránky
-Route::view('/about', 'about');
-Route::view('/contact', 'contact');
-Route::view('/motorcycles', 'motorcycles');
+Route::view('/contact', 'contact')->name('contact');
+Route::view('/motorcycles', 'motorcycles')->name('motorcycles');
 
-// Dynamické CRUD operácie
-use App\Http\Controllers\PostController;
+// Dynamické CRUD operácie pre príspevky
+Route::resource('posts', PostController::class)
+    ->except(['show']); // Metóda 'show' sa spravuje samostatne
 
-Route::resource('posts', PostController::class);
+// Vyhľadávanie
 Route::get('/posts/search', [PostController::class, 'search'])->name('posts.search');
+Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show');
 
 // Domovská stránka
 Route::get('/', function () {
@@ -22,23 +26,14 @@ Route::get('/', function () {
 // Autentifikácia
 Auth::routes();
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-
-Route::get('/posts/search', [PostController::class, 'search']);
-
-Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show');
-
-use App\Http\Controllers\AboutController;
-
-Route::get('/about', [AboutController::class, 'index'])->name('about');
-
 // Chránené stránky
 Route::middleware(['auth'])->group(function () {
-    Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-    Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+    // Dashboard pre autentifikovaných používateľov
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 });
 
 // Verejné stránky
-Route::get('/', function () {
-    return view('home');
-})->name('home');
+Route::get('/about', [AboutController::class, 'index'])->name('about');
+
+Route::get('/', [PostController::class, 'index'])->name('home');
+Route::resource('posts', PostController::class);

@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 class PostController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Zobrazí všetky príspevky.
      */
     public function index()
     {
@@ -17,7 +17,7 @@ class PostController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Zobrazí formulár na vytvorenie nového príspevku.
      */
     public function create()
     {
@@ -25,7 +25,7 @@ class PostController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Uloží nový príspevok do databázy.
      */
     public function store(Request $request)
     {
@@ -35,14 +35,14 @@ class PostController extends Controller
         ]);
 
         $post = new Post($validatedData);
-        $post->user_id = auth()->id(); // Priradenie aktuálneho používateľa
+        $post->user_id = auth()->id();
         $post->save();
 
         return redirect()->route('posts.index')->with('success', 'Príspevok bol úspešne vytvorený.');
     }
 
     /**
-     * Display the specified resource.
+     * Zobrazí konkrétny príspevok.
      */
     public function show(Post $post)
     {
@@ -50,11 +50,10 @@ class PostController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Zobrazí formulár na úpravu príspevku.
      */
     public function edit(Post $post)
     {
-        // Zabezpečenie - iba autor príspevku ho môže upraviť
         if ($post->user_id !== auth()->id()) {
             abort(403, 'Nemáte právo upraviť tento príspevok.');
         }
@@ -63,11 +62,10 @@ class PostController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Aktualizuje príspevok v databáze.
      */
     public function update(Request $request, Post $post)
     {
-        // Zabezpečenie - iba autor príspevku ho môže aktualizovať
         if ($post->user_id !== auth()->id()) {
             abort(403, 'Nemáte právo na editáciu tohto príspevku.');
         }
@@ -83,11 +81,10 @@ class PostController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Odstráni príspevok z databázy.
      */
     public function destroy(Post $post)
     {
-        // Zabezpečenie - iba autor príspevku ho môže vymazať
         if ($post->user_id !== auth()->id()) {
             abort(403, 'Nemáte právo vymazať tento príspevok.');
         }
@@ -98,12 +95,18 @@ class PostController extends Controller
     }
 
     /**
-     * Search for posts based on a query.
+     * Vyhľadáva príspevky podľa kľúčového slova.
      */
     public function search(Request $request)
     {
-        $query = $request->get('query');
-        $posts = Post::where('title', 'LIKE', "%{$query}%")->get();
-        return response()->json($posts);
+        $query = $request->get('query'); // Načítanie vyhľadávacieho dotazu
+        if (!$query) {
+            return response()->json([]); // Prázdne výsledky, ak nie je zadaný text
+        }
+
+        $posts = Post::where('title', 'LIKE', "%{$query}%")->get(); // Vyhľadávanie v názvoch príspevkov
+
+        return response()->json($posts); // Vrátenie výsledkov vo formáte JSON
     }
+
 }

@@ -41,12 +41,10 @@
 
 @section('scripts')
     <script>
-        // Vyhľadávacia funkcia
         document.querySelector('#search').addEventListener('input', function() {
             const query = this.value;
 
-            // Požiadavku na server
-            fetch(`/posts/search?query=${query}`)
+            fetch(`/posts/search?query=${encodeURIComponent(query)}`)
                 .then(response => response.json())
                 .then(data => {
                     let html = '';
@@ -58,17 +56,14 @@
                             <tr>
                                 <td>${post.title}</td>
                                 <td>
-                                    ${post.user_id === {{ auth()->id() }} ? `
-                                        <a href="/posts/${post.id}/edit" class="btn btn-warning">Upraviť</a>
-                                        <form action="/posts/${post.id}" method="POST" style="display:inline;">
-                                            <input type="hidden" name="_method" value="DELETE">
-                                            <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                                            <button type="submit" class="btn btn-danger">Vymazať</button>
-                                        </form>
-                                    ` : `<span class="text-muted">Nemáte oprávnenie upravovať tento príspevok</span>`}
+                                    <a href="/posts/${post.id}/edit" class="btn btn-warning">Upraviť</a>
+                                    <form action="/posts/${post.id}" method="POST" style="display:inline;">
+                                        <input type="hidden" name="_method" value="DELETE">
+                                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-danger">Vymazať</button>
+                                    </form>
                                 </td>
-                            </tr>
-                            `;
+                            </tr>`;
                         });
                     }
                     document.querySelector('#postList').innerHTML = html;

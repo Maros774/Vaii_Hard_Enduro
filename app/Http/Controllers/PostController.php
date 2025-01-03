@@ -26,14 +26,30 @@ class PostController extends Controller
         $validatedData = $request->validate([
             'title' => 'required|max:255',
             'content' => 'required',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'video' => 'nullable|mimes:mp4,mov,avi,wmv|max:51200', // 50MB max
         ]);
 
         $post = new Post($validatedData);
         $post->user_id = auth()->id();
+
+        // Uloženie fotky
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('images', 'public');
+            $post->image_path = $imagePath;
+        }
+
+        // Uloženie videa
+        if ($request->hasFile('video')) {
+            $videoPath = $request->file('video')->store('videos', 'public');
+            $post->video_path = $videoPath;
+        }
+
         $post->save();
 
         return redirect()->route('posts.index')->with('success', 'Príspevok bol úspešne vytvorený.');
     }
+
 
     // Zobrazí konkrétny príspevok
     public function show($id)
@@ -94,6 +110,14 @@ class PostController extends Controller
         return response()->json(['data' => $posts]);
     }
 
+    public function like($id)
+    {
+        $post = Post::findOrFail($id);
+        $post->likes += 1; // Pridanie lajku
+        $post->save();
+
+        return response()->json(['likes' => $post->likes]);
+    }
 
 
 

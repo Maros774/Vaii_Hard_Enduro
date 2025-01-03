@@ -1,23 +1,31 @@
 @extends('layouts.app')
 
 @section('content')
-    <h1>{{ isset($post) ? 'Upraviť príspevok' : 'Nový príspevok' }}</h1>
-    <form id="postForm" action="{{ isset($post) ? route('posts.update', $post->id) : route('posts.store') }}" method="POST">
-        @csrf
-        @if(isset($post))
-            @method('PUT')
-        @endif
-        <div class="mb-3">
-            <label for="title" class="form-label">Názov</label>
-            <input type="text" class="form-control" id="title" name="title" value="{{ $post->title ?? '' }}" required>
-        </div>
-        <div class="mb-3">
-            <label for="content" class="form-label">Obsah</label>
-            <textarea class="form-control" id="content" name="content" rows="5" required>{{ $post->content ?? '' }}</textarea>
-        </div>
-        <button type="submit" class="btn btn-success">{{ isset($post) ? 'Uložiť' : 'Vytvoriť' }}</button>
-    </form>
+    <div class="container">
+        <h2>Vytvoriť príspevok</h2>
+        <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            <div class="mb-3">
+                <label for="title" class="form-label">Názov</label>
+                <input type="text" class="form-control" id="title" name="title" required>
+            </div>
+            <div class="mb-3">
+                <label for="content" class="form-label">Obsah</label>
+                <textarea class="form-control" id="content" name="content" rows="5" required></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="image" class="form-label">Pridať fotku</label>
+                <input type="file" class="form-control" id="image" name="image">
+            </div>
+            <div class="mb-3">
+                <label for="video" class="form-label">Pridať video</label>
+                <input type="file" class="form-control" id="video" name="video">
+            </div>
+            <button type="submit" class="btn btn-primary">Uložiť</button>
+        </form>
+    </div>
 @endsection
+
 
 @section('scripts')
     <script>

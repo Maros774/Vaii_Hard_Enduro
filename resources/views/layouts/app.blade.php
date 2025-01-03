@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ config('app.name', 'Hard Enduro') }}</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -17,11 +19,11 @@
     <div class="container">
         <h1 class="text-center mb-3">Hard Enduro</h1>
         <nav class="nav-bar d-flex justify-content-center">
-            <a class="nav-link fs-4 mx-3 {{ request()->is('home') ? 'active' : '' }}" href="/home">Domov</a>
-            <a class="nav-link fs-4 mx-3 {{ request()->is('about') ? 'active' : '' }}" href="/about">O nás</a>
-            <a class="nav-link fs-4 mx-3 {{ request()->is('motorcycles') ? 'active' : '' }}" href="/motorcycles">Motocykle</a>
-            <a class="nav-link fs-4 mx-3 {{ request()->is('contact') ? 'active' : '' }}" href="/contact">Kontakt</a>
-            <a class="nav-link fs-4 mx-3 {{ request()->is('posts*') ? 'active' : '' }}" href="/posts">Príspevky</a>
+            <a class="nav-link fs-4 mx-3 {{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">Domov</a>
+            <a class="nav-link fs-4 mx-3 {{ request()->routeIs('about') ? 'active' : '' }}" href="{{ route('about') }}">O nás</a>
+            <a class="nav-link fs-4 mx-3 {{ request()->routeIs('motorcycles') ? 'active' : '' }}" href="{{ route('motorcycles') }}">Motocykle</a>
+            <a class="nav-link fs-4 mx-3 {{ request()->routeIs('contact') ? 'active' : '' }}" href="{{ route('contact') }}">Kontakt</a>
+            <a class="nav-link fs-4 mx-3 {{ request()->routeIs('posts.*') ? 'active' : '' }}" href="{{ route('posts.index') }}">Príspevky</a>
         </nav>
     </div>
 </header>

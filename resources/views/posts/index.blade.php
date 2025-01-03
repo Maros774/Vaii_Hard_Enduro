@@ -2,37 +2,63 @@
 
 @section('content')
     <div class="container">
-        <h1 class="mb-4">Príspevky</h1>
-        <a href="{{ route('posts.create') }}" class="btn btn-primary mb-3">Nový príspevok</a>
-        <input type="text" id="search" class="form-control mb-3" placeholder="Hľadajte podľa názvu...">
-        <table class="table">
-            <thead>
-            <tr>
-                <th>Názov</th>
-                <th>Akcie</th>
-            </tr>
-            </thead>
-            <tbody id="postList">
+        <h2>Príspevky</h2>
+
+        <!-- Tlačidlo na pridanie nového príspevku -->
+        @auth
+            <a href="{{ route('posts.create') }}" class="btn btn-success mb-3">Pridať nový príspevok</a>
+        @endauth
+
+        <!-- Vyhľadávacie pole -->
+        <input type="text" id="search" class="form-control mb-3" placeholder="Vyhľadajte príspevky...">
+
+        <!-- Zoznam príspevkov -->
+        <div id="postList">
             @foreach ($posts as $post)
-                <tr>
-                    <td>{{ $post->title }}</td>
-                    <td>
-                        <a href="{{ route('posts.show', $post->id) }}" class="btn btn-primary btn-sm">Zobraziť</a>
-                        @if (auth()->check() && auth()->id() === $post->user_id)
-                            <a href="{{ route('posts.edit', $post->id) }}" class="btn btn-warning btn-sm">Upraviť</a>
-                            <form action="{{ route('posts.destroy', $post->id) }}" method="POST" style="display: inline;">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-danger btn-sm">Vymazať</button>
-                            </form>
-                        @else
-                            <span>Nemáte oprávnenie upravovať tento príspevok</span>
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ $post->title }}</h5>
+                        <p class="card-text">{{ $post->content }}</p>
+
+                        <!-- Zobrazenie fotky -->
+                        @if ($post->image_path)
+                            <img src="{{ asset('storage/' . $post->image_path) }}" alt="Obrázok príspevku" class="img-fluid mt-3">
                         @endif
-                    </td>
-                </tr>
+
+                        <!-- Zobrazenie videa -->
+                        @if ($post->video_path)
+                            <video controls class="mt-3 w-100">
+                                <source src="{{ asset('storage/' . $post->video_path) }}" type="video/mp4">
+                                Váš prehliadač nepodporuje prehrávanie videa.
+                            </video>
+                        @endif
+
+                        <!-- Akcie pre oprávneného používateľa (autora príspevku) -->
+                        @auth
+                            @if (auth()->id() === $post->user_id)
+                                <div class="mt-3">
+                                    <!-- Tlačidlo na úpravu -->
+                                    <a href="{{ route('posts.edit', $post->id) }}" class="btn btn-warning btn-sm">Upraviť</a>
+
+                                    <!-- Tlačidlo na vymazanie -->
+                                    <form action="{{ route('posts.destroy', $post->id) }}" method="POST" style="display: inline;">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-sm">Vymazať</button>
+                                    </form>
+                                </div>
+                            @endif
+                        @endauth
+
+                        <!-- Lajkovanie -->
+                        <div class="mt-2">
+                            <button class="btn btn-primary btn-sm like-button" data-id="{{ $post->id }}">Like</button>
+                            <span id="like-count-{{ $post->id }}">{{ $post->likes }}</span> Lajkov
+                        </div>
+                    </div>
+                </div>
             @endforeach
-            </tbody>
-        </table>
+        </div>
     </div>
 @endsection
 
@@ -42,47 +68,50 @@
             const searchInput = document.querySelector('#search');
             const postList = document.querySelector('#postList');
 
+            // Vyhľadávanie
             searchInput.addEventListener('input', function () {
                 const query = this.value.trim();
 
-                if (!query) {
-                    postList.innerHTML = `<tr><td colspan="2" class="text-center">Zadajte hľadaný text...</td></tr>`;
-                    return;
-                }
-
                 fetch(`/posts/search?query=${encodeURIComponent(query)}`)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Chyba pri spracovaní požiadavky.');
-                        }
-                        return response.json();
-                    })
+                    .then(response => response.json())
                     .then(result => {
-                        const posts = result.data;
-                        if (!Array.isArray(posts)) {
-                            throw new Error('Odpoveď zo servera nie je vo formáte poľa.');
-                        }
-
-                        let html = '';
-                        if (posts.length === 0) {
-                            html = '<tr><td colspan="2" class="text-center">Žiadne výsledky.</td></tr>';
+                        postList.innerHTML = '';
+                        if (result.data.length === 0) {
+                            postList.innerHTML = '<p class="text-center">Žiadne výsledky.</p>';
                         } else {
-                            posts.forEach(post => {
-                                html += `
-                            <tr>
-                                <td>${post.title}</td>
-                                <td>
-                                    <a href="/posts/${post.id}" class="btn btn-primary btn-sm">Zobraziť</a>
-                                </td>
-                            </tr>`;
+                            result.data.forEach(post => {
+                                postList.innerHTML += `
+                                    <div class="card mb-3">
+                                        <div class="card-body">
+                                            <h5 class="card-title">${post.title}</h5>
+                                            <p class="card-text">${post.content}</p>
+                                            <button class="btn btn-primary btn-sm like-button" data-id="${post.id}">Like</button>
+                                            <span id="like-count-${post.id}">${post.likes}</span> Lajkov
+                                        </div>
+                                    </div>
+                                `;
                             });
                         }
-                        postList.innerHTML = html;
-                    })
-                    .catch(error => {
-                        console.error('Chyba pri vyhľadávaní:', error);
-                        postList.innerHTML = '<tr><td colspan="2" class="text-center">Nastala chyba pri vyhľadávaní.</td></tr>';
                     });
+            });
+
+            // Lajkovanie
+            document.addEventListener('click', function (e) {
+                if (e.target.classList.contains('like-button')) {
+                    const postId = e.target.dataset.id;
+
+                    fetch(`/posts/${postId}/like`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        }
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            document.querySelector(`#like-count-${postId}`).textContent = data.likes;
+                        })
+                        .catch(error => console.error('Chyba pri lajkovaní:', error));
+                }
             });
         });
     </script>

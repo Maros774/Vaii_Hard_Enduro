@@ -1,45 +1,56 @@
 <?php
-//
-//namespace App\Http\Controllers;
-//
-//use Illuminate\Support\Facades\File;
-//
-//class AboutController extends Controller
-//{
-//    public function index()
-//    {
-//        // Načítanie obrázkov a videí z priečinkov
-//        $images = File::files(public_path('media/about/images'));
-//        $videos = File::files(public_path('media/about/videos'));
-//
-//        // Posielame cesty k súborom do pohľadu
-//        return view('about', compact('images', 'videos'));
-//    }
-//}
-
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\File;
+use Illuminate\Http\Request;
+use App\Models\About;
 
 class AboutController extends Controller
 {
     public function index()
     {
-        // Načítanie obrázkov a videí z priečinkov
-        $imagePath = public_path('media/about/images');
-        $videoPath = public_path('media/about/videos');
+        $content = About::all();
+        return view('about.index', compact('content'));
+    }
 
-        // Kontrola existencie priečinkov a načítanie súborov
-        $images = File::exists($imagePath) ? File::files($imagePath) : [];
-        $videos = File::exists($videoPath) ? File::files($videoPath) : [];
+    public function create()
+    {
+        $this->authorize('admin');
+        return view('about.create');
+    }
 
-        // Transformácia súborov na verejné cesty
-        $images = array_map(fn($file) => asset('media/about/images/' . $file->getFilename()), $images);
-        $videos = array_map(fn($file) => asset('media/about/videos/' . $file->getFilename()), $videos);
+    public function store(Request $request)
+    {
+        $this->authorize('admin');
+        $validated = $request->validate([
+            'title' => 'required|max:255',
+            'content' => 'required',
+        ]);
+        About::create($validated);
+        return redirect()->route('about.index')->with('success', 'Obsah bol úspešne vytvorený.');
+    }
 
-        // Posielame cesty k súborom do pohľadu
-        return view('about', compact('images', 'videos'));
+    public function edit(About $about)
+    {
+        $this->authorize('admin');
+        return view('about.edit', compact('about'));
+    }
+
+    public function update(Request $request, About $about)
+    {
+        $this->authorize('admin');
+        $validated = $request->validate([
+            'title' => 'required|max:255',
+            'content' => 'required',
+        ]);
+        $about->update($validated);
+        return redirect()->route('about.index')->with('success', 'Obsah bol úspešne aktualizovaný.');
+    }
+
+    public function destroy(About $about)
+    {
+        $this->authorize('admin');
+        $about->delete();
+        return redirect()->route('about.index')->with('success', 'Obsah bol úspešne odstránený.');
     }
 }
-

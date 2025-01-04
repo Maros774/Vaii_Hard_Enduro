@@ -15,6 +15,7 @@ Route::view('/motorcycles', 'motorcycles')->name('motorcycles');
 // Dynamické CRUD operácie pre príspevky
 Route::resource('posts', PostController::class);
 Route::get('/posts/search', [PostController::class, 'search'])->name('posts.search');
+Route::post('/posts/{post}/like', [PostController::class, 'like'])->name('posts.like');
 
 // Autentifikácia
 Auth::routes();
@@ -26,9 +27,3 @@ Route::middleware(['auth'])->group(function () {
 
 // Verejné stránky
 Route::get('/about', [AboutController::class, 'index'])->name('about');
-
-
-Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
-Route::post('/posts/{post}/like', [PostController::class, 'like'])->name('posts.like');
-
-Route::post('/posts/{post}/like', [PostController::class, 'like']);

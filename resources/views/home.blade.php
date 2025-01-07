@@ -25,7 +25,8 @@
                             <!-- Odkazy pre prihlásených používateľov -->
                             <a href="{{ route('dashboard') }}" class="btn btn-primary me-2">Dashboard</a>
                             <a href="{{ route('posts.index') }}" class="btn btn-info me-2">Príspevky</a>
-                            <a href="{{ route('about') }}" class="btn btn-secondary">O nás</a>
+                            <a href="{{ route('about.index') }}" class="btn btn-secondary">O nás</a>
+
 
                             <hr>
                             <!-- Tlačidlo na odhlásenie -->

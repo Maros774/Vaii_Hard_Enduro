@@ -12,6 +12,7 @@ class AdminMiddleware
         if (auth()->check() && auth()->user()->role === 'admin') {
             return $next($request);
         }
+
         return redirect('/')->with('error', 'Nemáte oprávnenie na túto akciu.');
     }
 }

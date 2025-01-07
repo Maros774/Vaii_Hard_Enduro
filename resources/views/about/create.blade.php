@@ -13,7 +13,7 @@
                 <label for="content" class="form-label">Obsah</label>
                 <textarea name="content" id="content" class="form-control" rows="5" required></textarea>
             </div>
-            <button type="submit" class="btn btn-primary">Odoslať</button>
+            <button type="submit" class="btn btn-primary">Pridať</button>
         </form>
     </div>
 @endsection

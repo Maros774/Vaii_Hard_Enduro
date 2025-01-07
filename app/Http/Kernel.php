@@ -70,4 +70,7 @@ class Kernel extends HttpKernel
         'admin' => \App\Http\Middleware\AdminMiddleware::class,
     ];
 
+
+
+
 }

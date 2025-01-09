@@ -105,10 +105,14 @@ class PostController extends Controller
     // Vyhľadávanie príspevkov
     public function search(Request $request)
     {
-        $query = $request->query('query', '');
-        $posts = Post::where('title', 'LIKE', "%{$query}%")->get(['id', 'title']);
-        return response()->json(['data' => $posts]);
+        $query = $request->input('query');
+        $posts = Post::where('title', 'like', "%$query%")
+            ->orWhere('content', 'like', "%$query%")
+            ->get();
+
+        return response()->json($posts);
     }
+
 
     public function like($id)
     {

@@ -5,13 +5,13 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\AboutController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\MotorcycleController;
 
 // Hlavná stránka
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Statické stránky
 Route::view('/contact', 'contact')->name('contact');
-Route::view('/motorcycles', 'motorcycles')->name('motorcycles');
 
 // Dynamické CRUD operácie pre príspevky
 Route::resource('posts', PostController::class);
@@ -38,3 +38,6 @@ Route::middleware('admin')->prefix('about')->group(function () {
     Route::put('/{about}', [AboutController::class, 'update'])->name('about.update');
     Route::delete('/{about}', [AboutController::class, 'destroy'])->name('about.destroy');
 });
+
+// Adminské operácie pre sekciu "Motocykle"
+Route::resource('motorcycles', MotorcycleController::class);

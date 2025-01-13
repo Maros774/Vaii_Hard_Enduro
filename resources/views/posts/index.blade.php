@@ -4,115 +4,139 @@
     <div class="container">
         <h2>Príspevky</h2>
 
-        <!-- Tlačidlo na pridanie nového príspevku -->
+        <!-- Ak je user prihlásený, tlačidlo na pridanie príspevku -->
         @auth
-            <a href="{{ route('posts.create') }}" class="btn btn-success mb-3">Pridať nový príspevok</a>
+            <a href="{{ route('posts.create') }}" class="btn btn-success mb-3">
+                Pridať nový príspevok
+            </a>
         @endauth
 
-        <!-- Vyhľadávacie pole -->
-        <input type="text" id="search" class="form-control mb-3" placeholder="Vyhľadajte príspevky...">
+        <!-- Filter -->
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <input
+                    type="text"
+                    id="authorFilter"
+                    class="form-control"
+                    placeholder="Filter podľa autora (ID)"
+                >
+            </div>
+            <div class="col-md-3">
+                <input
+                    type="date"
+                    id="dateFilter"
+                    class="form-control"
+                >
+            </div>
+            <div class="col-md-3">
+                <select id="sortBy" class="form-control">
+                    <option value="">Bez triedenia</option>
+                    <option value="title">Názov</option>
+                    <option value="created_at">Dátum</option>
+                    <option value="likes">Počet lajkov</option>
+                </select>
+            </div>
+            <div class="col-md-1">
+                <select id="direction" class="form-control">
+                    <option value="asc">ASC</option>
+                    <option value="desc">DESC</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button id="filterBtn" class="btn btn-primary w-100">
+                    Filtrovať
+                </button>
+            </div>
+        </div>
 
-        <!-- Zoznam príspevkov -->
+        <!-- Tu zobrazíme príspevky (server side) pri prvom načítaní -->
         <div id="postList">
-            @foreach ($posts as $post)
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ $post->title }}</h5>
-                        <p class="card-text">{{ $post->content }}</p>
-
-                        <!-- Zobrazenie fotky -->
-                        @if ($post->image_path)
-                            <img src="{{ asset('storage/' . $post->image_path) }}" alt="Obrázok príspevku" class="img-fluid mt-3">
-                        @endif
-
-                        <!-- Zobrazenie videa -->
-                        @if ($post->video_path)
-                            <video controls class="mt-3 w-100">
-                                <source src="{{ asset('storage/' . $post->video_path) }}" type="video/mp4">
-                                Váš prehliadač nepodporuje prehrávanie videa.
-                            </video>
-                        @endif
-
-                        <!-- Akcie pre oprávneného používateľa (autora príspevku) -->
-                        @auth
-                            @if (auth()->id() === $post->user_id)
-                                <div class="mt-3">
-                                    <!-- Tlačidlo na úpravu -->
-                                    <a href="{{ route('posts.edit', $post->id) }}" class="btn btn-warning btn-sm">Upraviť</a>
-
-                                    <!-- Tlačidlo na vymazanie -->
-                                    <form action="{{ route('posts.destroy', $post->id) }}" method="POST" style="display: inline;">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm">Vymazať</button>
-                                    </form>
-                                </div>
-                            @endif
-                        @endauth
-
-                        <!-- Lajkovanie -->
-                        <div class="mt-2">
-                            <button class="btn btn-primary btn-sm like-button" data-id="{{ $post->id }}">Like</button>
-                            <span id="like-count-{{ $post->id }}">{{ $post->likes }}</span> Lajkov
-                        </div>
-                    </div>
-                </div>
-            @endforeach
+            @include('posts._partials.filtered_posts', ['posts' => $posts])
         </div>
     </div>
 @endsection
 
 @section('scripts')
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const searchInput = document.querySelector('#search');
-            const postList = document.querySelector('#postList');
+        document.addEventListener('DOMContentLoaded', function() {
+            const filterBtn       = document.getElementById('filterBtn');
+            const authorFilter    = document.getElementById('authorFilter');
+            const dateFilter      = document.getElementById('dateFilter');
+            const sortBySelect    = document.getElementById('sortBy');
+            const directionSelect = document.getElementById('direction');
+            const postList        = document.getElementById('postList');
 
-            // Vyhľadávanie
-            searchInput.addEventListener('input', function () {
-                const query = this.value.trim();
+            // Po stlačení "Filtrovať" -> zavoláme AJAX
+            if (filterBtn) {
+                filterBtn.addEventListener('click', function() {
+                    const author    = authorFilter.value.trim();
+                    const date      = dateFilter.value;
+                    const sortBy    = sortBySelect.value;
+                    const direction = directionSelect.value;
 
-                fetch(`/posts/search?query=${encodeURIComponent(query)}`)
-                    .then(response => response.json())
-                    .then(result => {
-                        postList.innerHTML = '';
-                        if (result.data.length === 0) {
-                            postList.innerHTML = '<p class="text-center">Žiadne výsledky.</p>';
-                        } else {
-                            result.data.forEach(post => {
-                                postList.innerHTML += `
-                                    <div class="card mb-3">
-                                        <div class="card-body">
-                                            <h5 class="card-title">${post.title}</h5>
-                                            <p class="card-text">${post.content}</p>
-                                            <button class="btn btn-primary btn-sm like-button" data-id="${post.id}">Like</button>
-                                            <span id="like-count-${post.id}">${post.likes}</span> Lajkov
-                                        </div>
-                                    </div>
-                                `;
-                            });
-                        }
-                    });
-            });
+                    // Poskladáme query ?author=xyz&date=... atď
+                    const params = new URLSearchParams();
+                    if (author)    params.append('author', author);
+                    if (date)      params.append('date', date);
+                    if (sortBy)    params.append('sortBy', sortBy);
+                    if (direction) params.append('direction', direction);
 
-            // Lajkovanie
-            document.addEventListener('click', function (e) {
-                if (e.target.classList.contains('like-button')) {
-                    const postId = e.target.dataset.id;
-
-                    fetch(`/posts/${postId}/like`, {
-                        method: 'POST',
+                    fetch('/posts?' + params.toString(), {
                         headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            // Chceme HTML
+                            'Accept': 'text/html'
                         }
                     })
-                        .then(response => response.json())
-                        .then(data => {
-                            document.querySelector(`#like-count-${postId}`).textContent = data.likes;
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Error fetching partial: ' + response.status);
+                            }
+                            return response.text(); // Vráti HTML
                         })
-                        .catch(error => console.error('Chyba pri lajkovaní:', error));
-                }
-            });
+                        .then(html => {
+                            // Nahradíme #postList novým partialom
+                            postList.innerHTML = html;
+                            attachLikeListeners();
+                        })
+                        .catch(err => {
+                            console.error('Error fetching filtered posts:', err);
+                        });
+                });
+            }
+
+            // Ak používaš lajkovanie, pripoj eventy
+            attachLikeListeners();
+
+            function attachLikeListeners() {
+                document.querySelectorAll('.like-button').forEach(btn => {
+                    btn.removeEventListener('click', likeHandler);
+                    btn.addEventListener('click', likeHandler);
+                });
+            }
+
+            function likeHandler(e) {
+                const postId = e.currentTarget.dataset.id;
+                fetch(`/posts/${postId}/like`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    }
+                })
+                    .then(r => {
+                        if (!r.ok) throw new Error('Chyba pri lajkovaní: ' + r.status);
+                        return r.json();
+                    })
+                    .then(data => {
+                        if (data && data.likes !== undefined) {
+                            const span = document.getElementById('like-count-' + postId);
+                            if (span) {
+                                span.textContent = data.likes;
+                            }
+                        }
+                    })
+                    .catch(error => console.error('Lajkovanie error:', error));
+            }
         });
     </script>
 @endsection

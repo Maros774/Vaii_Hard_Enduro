@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CommentController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PostController;
@@ -15,7 +16,7 @@ Route::view('/contact', 'contact')->name('contact');
 
 // Dynamické CRUD operácie pre príspevky
 Route::resource('posts', PostController::class);
-Route::get('/posts/search', [PostController::class, 'search'])->name('posts.search');
+//Route::get('/posts/search', [PostController::class, 'search'])->name('posts.search');
 Route::post('/posts/{post}/like', [PostController::class, 'like'])->name('posts.like');
 
 // Autentifikácia
@@ -41,3 +42,11 @@ Route::middleware('admin')->prefix('about')->group(function () {
 
 // Adminské operácie pre sekciu "Motocykle"
 Route::resource('motorcycles', MotorcycleController::class);
+
+
+// Operácie pre komentáre
+Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('comments.store');
+Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
+
+
+//Route::get('/posts', [PostController::class, 'index'])->name('posts.index');

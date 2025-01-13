@@ -7,27 +7,63 @@ use Illuminate\Http\Request;
 
 class PostController extends Controller
 {
-    // Zobrazí všetky príspevky
-    public function index()
+    // Zobrazí všetky príspevky (filtrovanie + triedenie + partial)
+    public function index(Request $request)
     {
-        $posts = Post::all();
+        // Vytvor query
+        $query = Post::query();
+
+        // 1. Filtrovanie podľa autora (user_id)
+        if ($request->filled('author')) {
+            $query->where('user_id', $request->author);
+        }
+
+        // 2. Filtrovanie podľa dátumu (napr. 2025-01-01)
+        if ($request->filled('date')) {
+            $query->whereDate('created_at', $request->date);
+        }
+
+        // 3. Triedenie (title, created_at, likes)
+        if (
+            $request->filled('sortBy') &&
+            in_array($request->sortBy, ['title','created_at','likes'], true)
+        ) {
+            $direction = $request->input('direction') === 'asc' ? 'asc' : 'desc';
+            $query->orderBy($request->sortBy, $direction);
+        }
+
+        // Načítame príspevky + ich používateľov
+        $posts = $query->with('user')->get();
+
+        // Rozlíš AJAX vs. normál (BEZ JSON, posielame partial HTML)
+        if ($request->ajax()) {
+            // Vyrenderuj partial Blade do reťazca
+            $partialHtml = view('posts._partials.filtered_posts', compact('posts'))
+                ->render();
+
+            // Vráť ako text/html
+            return response($partialHtml, 200)
+                ->header('Content-Type', 'text/html');
+        }
+
+        // Normálny request => vrátime "index.blade.php" (celú stránku)
         return view('posts.index', compact('posts'));
     }
 
-    // Zobrazí formulár na vytvorenie nového príspevku
+    // ========= Ostatné CRUD metódy ==========
+
     public function create()
     {
         return view('posts.create');
     }
 
-    // Uloží nový príspevok
     public function store(Request $request)
     {
         $validatedData = $request->validate([
             'title' => 'required|max:255',
             'content' => 'required',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'video' => 'nullable|mimes:mp4,mov,avi,wmv|max:51200', // 50MB max
+            'video' => 'nullable|mimes:mp4,mov,avi,wmv|max:51200',
         ]);
 
         $post = new Post($validatedData);
@@ -38,7 +74,6 @@ class PostController extends Controller
             $imagePath = $request->file('image')->store('images', 'public');
             $post->image_path = $imagePath;
         }
-
         // Uloženie videa
         if ($request->hasFile('video')) {
             $videoPath = $request->file('video')->store('videos', 'public');
@@ -47,82 +82,61 @@ class PostController extends Controller
 
         $post->save();
 
-        return redirect()->route('posts.index')->with('success', 'Príspevok bol úspešne vytvorený.');
+        return redirect()->route('posts.index')
+            ->with('success','Príspevok bol úspešne vytvorený.');
     }
 
-
-    // Zobrazí konkrétny príspevok
-    public function show($id)
+    public function show(Post $post)
     {
-        $post = Post::find($id);
-
-        if (!$post) {
-            abort(404, 'Príspevok neexistuje.');
-        }
-
         return view('posts.show', compact('post'));
     }
 
-    // Zobrazí formulár na úpravu príspevku
     public function edit(Post $post)
     {
+        // Overenie, či ide o autora
         if ($post->user_id !== auth()->id()) {
             abort(403, 'Nemáte právo upravovať tento príspevok.');
         }
-
         return view('posts.edit', compact('post'));
     }
 
-    // Aktualizuje príspevok
     public function update(Request $request, Post $post)
     {
         if ($post->user_id !== auth()->id()) {
             abort(403, 'Nemáte právo upravovať tento príspevok.');
         }
 
-        $validatedData = $request->validate([
+        $validated = $request->validate([
             'title' => 'required|max:255',
             'content' => 'required',
         ]);
+        $post->update($validated);
 
-        $post->update($validatedData);
-
-        return redirect()->route('posts.index')->with('success', 'Príspevok bol úspešne upravený.');
+        return redirect()->route('posts.index')
+            ->with('success', 'Príspevok bol úspešne upravený.');
     }
 
-    // Odstráni príspevok
     public function destroy(Post $post)
     {
         if ($post->user_id !== auth()->id()) {
             abort(403, 'Nemáte právo odstrániť tento príspevok.');
         }
-
         $post->delete();
 
-        return redirect()->route('posts.index')->with('success', 'Príspevok bol úspešne odstránený.');
+        return redirect()->route('posts.index')
+            ->with('success', 'Príspevok bol úspešne odstránený.');
     }
 
-    // Vyhľadávanie príspevkov
-    public function search(Request $request)
-    {
-        $query = $request->input('query');
-        $posts = Post::where('title', 'like', "%$query%")
-            ->orWhere('content', 'like', "%$query%")
-            ->get();
-
-        return response()->json($posts);
-    }
-
-
+    // Lajkovanie (voliteľné)
     public function like($id)
     {
-        $post = Post::findOrFail($id);
-        $post->likes += 1; // Pridanie lajku
+        $post = Post::find($id);
+        if (!$post) {
+            return response()->json(['error' => 'Post not found'], 404);
+        }
+        $post->likes++;
         $post->save();
 
         return response()->json(['likes' => $post->likes]);
     }
-
-
-
 }

@@ -1,44 +1,6 @@
-// DOM Ready
+console.log('Hello from app.js');
+
 document.addEventListener('DOMContentLoaded', function () {
-    // Vyhľadávanie príspevkov
-    const searchInput = document.querySelector('#search');
-    const postList = document.querySelector('#postList');
-
-    if (searchInput && postList) {
-        searchInput.addEventListener('input', function () {
-            const query = this.value.trim();
-
-            if (!query) {
-                postList.innerHTML = `
-                    <tr>
-                        <td colspan="2" class="text-center">Zadajte hľadaný text...</td>
-                    </tr>`;
-                return;
-            }
-
-            fetch(`/posts/search?query=${encodeURIComponent(query)}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! Status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (!data || !Array.isArray(data.data)) {
-                        throw new Error("Formát odpovede API nie je správny.");
-                    }
-                    let html = '';
-                    data.data.forEach(post => {
-                        html += `<tr><td>${post.title}</td></tr>`;
-                    });
-                    postList.innerHTML = html;
-                })
-                .catch(error => {
-                    console.error("Chyba pri vyhľadávaní:", error);
-                    postList.innerHTML = '<tr><td colspan="2" class="text-center">Nastala chyba pri načítavaní príspevkov.</td></tr>';
-                });
-        });
-    }
 
     // Validácia formulárov
     document.querySelectorAll('form').forEach(form => {
@@ -62,29 +24,102 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Lajkovanie príspevkov
-    document.querySelectorAll('.like-button').forEach(button => {
-        button.addEventListener('click', () => {
-            const postId = button.dataset.postId;
+    // Funkcia na pripojenie listenerov na tlačidlá Like
+    function attachLikeListeners() {
+        document.querySelectorAll('.like-button').forEach(button => {
+            button.removeEventListener('click', likeButtonHandler); // Avoid duplicate listeners
+            button.addEventListener('click', likeButtonHandler);
+        });
+    }
 
-            fetch(`/posts/${postId}/like`, {
-                method: 'POST',
+    // Handler pre tlačidlá Like
+    function likeButtonHandler(event) {
+        const button = event.currentTarget;
+        const postId = button.dataset.id;
+
+        fetch(`/posts/${postId}/like`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Aktualizácia počtu lajkov
+                const likeCount = document.querySelector(`#like-count-${postId}`);
+                if (likeCount) {
+                    if (data && data.likes !== undefined) {
+                        likeCount.textContent = data.likes;
+                    } else {
+                        console.error("Likes property is missing in the response data.");
+                    }
+                }
+            })
+            .catch(error => {
+                console.error("Error during liking:", error);
+            });
+    }
+
+    // Filtrovanie príspevkov
+    const authorFilter = document.querySelector('#authorFilter');
+    const dateFilter = document.querySelector('#dateFilter');
+    const filterBtn = document.querySelector('#filterBtn');
+
+    if (filterBtn) {
+        filterBtn.addEventListener('click', function () {
+            const author = authorFilter ? authorFilter.value.trim() : '';
+            const date = dateFilter ? dateFilter.value : '';
+
+            const params = new URLSearchParams();
+            if (author) params.append('author', author);
+            if (date) params.append('date', date);
+
+            fetch(`/posts?${params.toString()}`, {
                 headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                 },
             })
-                .then(response => response.json())
-                .then(data => {
-                    // Aktualizácia počtu lajkov
-                    const likeCount = document.querySelector(`#like-count-${postId}`);
-                    if (likeCount) {
-                        likeCount.textContent = data.likes;
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(result => {
+                    postList.innerHTML = '';
+                    if (!result || !result.data || result.data.length === 0) {
+                        postList.innerHTML = '<p class="text-center">Žiadne výsledky.</p>';
+                    } else {
+                        result.data.forEach(post => {
+                            postList.innerHTML += `
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title">${post.title}</h5>
+                                        <p class="card-text">${post.content}</p>
+                                        <button class="btn btn-primary btn-sm like-button" data-id="${post.id}">Like</button>
+                                        <span id="like-count-${post.id}">${post.likes}</span> Lajkov
+                                    </div>
+                                </div>
+                            `;
+                        });
+
+                        // Re-attach Like listeners for new posts
+                        attachLikeListeners();
                     }
                 })
                 .catch(error => {
-                    console.error("Chyba pri lajkovaní:", error);
+                    console.error('Error fetching filtered posts:', error);
                 });
         });
-    });
+    }
+
+    // Initial attachment of Like listeners
+    attachLikeListeners();
 });

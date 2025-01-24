@@ -1,27 +1,29 @@
 @forelse($posts as $post)
     <div class="card mb-3">
         <div class="card-body">
-            <h5>{{ $post->title }}</h5>
-            <p>{{ $post->content }}</p>
+            <h5 class="card-title">{{ $post->title }}</h5>
+            <p class="card-text">{{ $post->content }}</p>
 
-            <!-- Obrázok -->
             @if($post->image_path)
                 <img
                     src="{{ asset('storage/' . $post->image_path) }}"
                     alt="Obrázok príspevku"
-                    class="img-fluid mt-2"
+                    class="img-fluid"
                     style="max-width:300px;"
                 >
             @endif
 
-            <!-- Video -->
             @if($post->video_path)
-                <video controls style="max-width:400px;" class="mt-2">
+                <video
+                    controls
+                    class="mt-2"
+                    style="max-width:400px;"
+                >
                     <source src="{{ asset('storage/' . $post->video_path) }}" type="video/mp4">
                 </video>
             @endif
 
-            <!-- Lajky (ak používaš) -->
+            <!-- Lajky, ak chceš -->
             <div class="mt-2">
                 <button
                     class="btn btn-primary btn-sm like-button"
@@ -34,9 +36,9 @@
                 </span> Lajkov
             </div>
 
-            <!-- Tlačidlá Upraviť / Vymazať (ak user je autor alebo admin) -->
+            <!-- Tlačidlá Upraviť / Odstrániť (len autor alebo admin) -->
             @auth
-                @if(auth()->id() === $post->user_id || auth()->user()->role === 'admin')
+                @if (auth()->id() === $post->user_id || auth()->user()->role === 'admin')
                     <div class="mt-2">
                         <a
                             href="{{ route('posts.edit', $post->id) }}"
@@ -65,5 +67,5 @@
         </div>
     </div>
 @empty
-    <p>Žiadne príspevky nespĺňajú filter.</p>
+    <p class="text-center">Žiadne výsledky.</p>
 @endforelse

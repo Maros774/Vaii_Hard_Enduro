@@ -4,14 +4,13 @@
     <div class="container">
         <h2>Príspevky</h2>
 
-        <!-- Ak je user prihlásený, tlačidlo na pridanie príspevku -->
         @auth
             <a href="{{ route('posts.create') }}" class="btn btn-success mb-3">
                 Pridať nový príspevok
             </a>
         @endauth
 
-        <!-- Filter -->
+        <!-- Filter a triedenie -->
         <div class="row mb-3">
             <div class="col-md-3">
                 <input
@@ -49,7 +48,7 @@
             </div>
         </div>
 
-        <!-- Tu zobrazíme príspevky (server side) pri prvom načítaní -->
+        <!-- Prvá (server side) verzia príspevkov -->
         <div id="postList">
             @include('posts._partials.filtered_posts', ['posts' => $posts])
         </div>
@@ -59,52 +58,50 @@
 @section('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const filterBtn       = document.getElementById('filterBtn');
-            const authorFilter    = document.getElementById('authorFilter');
-            const dateFilter      = document.getElementById('dateFilter');
-            const sortBySelect    = document.getElementById('sortBy');
+            const filterBtn = document.getElementById('filterBtn');
+            const authorFilter = document.getElementById('authorFilter');
+            const dateFilter = document.getElementById('dateFilter');
+            const sortBySelect = document.getElementById('sortBy');
             const directionSelect = document.getElementById('direction');
-            const postList        = document.getElementById('postList');
+            const postList = document.getElementById('postList');
 
-            // Po stlačení "Filtrovať" -> zavoláme AJAX
             if (filterBtn) {
                 filterBtn.addEventListener('click', function() {
-                    const author    = authorFilter.value.trim();
-                    const date      = dateFilter.value;
-                    const sortBy    = sortBySelect.value;
-                    const direction = directionSelect.value;
+                    const author = authorFilter.value.trim();
+                    const date = dateFilter.value;
+                    const sortBy = sortBySelect.value;
+                    const dir = directionSelect.value;
 
-                    // Poskladáme query ?author=xyz&date=... atď
                     const params = new URLSearchParams();
-                    if (author)    params.append('author', author);
-                    if (date)      params.append('date', date);
-                    if (sortBy)    params.append('sortBy', sortBy);
-                    if (direction) params.append('direction', direction);
+                    if (author)  params.append('author', author);
+                    if (date)    params.append('date', date);
+                    if (sortBy)  params.append('sortBy', sortBy);
+                    if (dir)     params.append('direction', dir);
 
                     fetch('/posts?' + params.toString(), {
                         headers: {
-                            // Chceme HTML
+                            // Očakávame partial (HTML)
                             'Accept': 'text/html'
                         }
                     })
                         .then(response => {
                             if (!response.ok) {
-                                throw new Error('Error fetching partial: ' + response.status);
+                                throw new Error('HTTP ' + response.status);
                             }
-                            return response.text(); // Vráti HTML
+                            return response.text(); // TEXT = partial HTML
                         })
                         .then(html => {
-                            // Nahradíme #postList novým partialom
                             postList.innerHTML = html;
+                            // Po nahratí nového HTML znovu pripoj Like eventy
                             attachLikeListeners();
                         })
-                        .catch(err => {
-                            console.error('Error fetching filtered posts:', err);
+                        .catch(error => {
+                            console.error('Chyba pri filtrovaní príspevkov:', error);
                         });
                 });
             }
 
-            // Ak používaš lajkovanie, pripoj eventy
+            // LIKE - pripojiť eventy
             attachLikeListeners();
 
             function attachLikeListeners() {
@@ -124,18 +121,18 @@
                     }
                 })
                     .then(r => {
-                        if (!r.ok) throw new Error('Chyba pri lajkovaní: ' + r.status);
+                        if (!r.ok) throw new Error('Chyba lajkovania: ' + r.status);
                         return r.json();
                     })
                     .then(data => {
                         if (data && data.likes !== undefined) {
-                            const span = document.getElementById('like-count-' + postId);
-                            if (span) {
-                                span.textContent = data.likes;
+                            const likeCountSpan = document.getElementById('like-count-' + postId);
+                            if (likeCountSpan) {
+                                likeCountSpan.textContent = data.likes;
                             }
                         }
                     })
-                    .catch(error => console.error('Lajkovanie error:', error));
+                    .catch(err => console.error('Error during like:', err));
             }
         });
     </script>

@@ -4,7 +4,7 @@
     <div class="container">
         <h2>Motocykle</h2>
 
-        <!-- Pridať tlačidlo na pridanie nového motocyklu -->
+        <!-- Pridať tlačidlo na pridanie nového motocyklu (len pre admina) -->
         @auth
             @if(auth()->user()->role === 'admin')
                 <a href="{{ route('motorcycles.create') }}" class="btn btn-success mb-3">Pridať nový motocykel</a>
@@ -17,8 +17,14 @@
                 <div class="card-body">
                     <h5>{{ $motorcycle->name }}</h5>
                     <p>{{ $motorcycle->description }}</p>
+
                     @if($motorcycle->image)
-                        <img src="{{ asset('storage/' . $motorcycle->image) }}" alt="{{ $motorcycle->name }}" class="img-fluid mb-3">
+                        <!-- Obrázok s "media-rounded" -->
+                        <img
+                            src="{{ asset('storage/' . $motorcycle->image) }}"
+                            alt="{{ $motorcycle->name }}"
+                            class="img-fluid mb-3 media-rounded"
+                        >
                     @endif
 
                     <!-- Akcie len pre admina -->

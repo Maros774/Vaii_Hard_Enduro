@@ -15,11 +15,21 @@
                 <div class="card-body">
                     <h5>{{ $about->title }}</h5>
                     <p>{{ $about->content }}</p>
+
                     @if($about->media)
-                        @if(Str::endsWith($about->media, ['jpg', 'jpeg', 'png']))
-                            <img src="{{ asset('storage/' . $about->media) }}" alt="Media" class="img-fluid mb-3">
+                        @if(Str::endsWith($about->media, ['jpg','jpeg','png']))
+                            <!-- Obrázok s "media-rounded" -->
+                            <img
+                                src="{{ asset('storage/' . $about->media) }}"
+                                alt="Media"
+                                class="img-fluid mb-3 media-rounded"
+                            >
                         @elseif(Str::endsWith($about->media, ['mp4']))
-                            <video controls class="w-100 mb-3">
+                            <!-- Video s "media-rounded" -->
+                            <video
+                                controls
+                                class="w-100 mb-3 media-rounded"
+                            >
                                 <source src="{{ asset('storage/' . $about->media) }}" type="video/mp4">
                                 Váš prehliadač nepodporuje prehrávanie videí.
                             </video>

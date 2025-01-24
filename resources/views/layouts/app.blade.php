@@ -19,7 +19,7 @@
         <h1 class="text-center mb-3">Hard Enduro</h1>
         <nav class="nav-bar d-flex justify-content-center">
             <a class="nav-link fs-4 mx-3 {{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">Domov</a>
-            <a class="nav-link fs-4 mx-3 {{ request()->routeIs('about.index') ? 'active' : '' }}" href="{{ route('about.index') }}">O nás</a>
+            <a class="nav-link fs-4 mx-3 {{ request()->routeIs('about.index') ? 'active' : '' }}" href="{{ route('about.index') }}">O_nás</a>
             <a class="nav-link fs-4 mx-3 {{ request()->routeIs('motorcycles.index') ? 'active' : '' }}" href="{{ route('motorcycles.index') }}">Motocykle</a>
             <a class="nav-link fs-4 mx-3 {{ request()->routeIs('contact') ? 'active' : '' }}" href="{{ route('contact') }}">Kontakt</a>
             <a class="nav-link fs-4 mx-3 {{ request()->routeIs('posts.*') ? 'active' : '' }}" href="{{ route('posts.index') }}">Príspevky</a>
@@ -48,7 +48,7 @@
 </main>
 
 <!-- Pätka -->
-<footer class="footer-bar bg-dark text-white text-center p-3">
+<footer class="footer-bar sticky-bottom bg-dark text-white text-center p-3">
     <p>© 2024 Hard Enduro Skupina</p>
 </footer>
 

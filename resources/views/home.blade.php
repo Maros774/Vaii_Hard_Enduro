@@ -23,10 +23,9 @@
                             </div>
 
                             <!-- Odkazy pre prihlásených používateľov -->
-                            <a href="{{ route('dashboard') }}" class="btn btn-primary me-2">Dashboard</a>
+                            <a href="{{ route('dashboard') }}" class="btn btn-primary me-2">Domov</a>
                             <a href="{{ route('posts.index') }}" class="btn btn-info me-2">Príspevky</a>
                             <a href="{{ route('about.index') }}" class="btn btn-secondary">O nás</a>
-
 
                             <hr>
                             <!-- Tlačidlo na odhlásenie -->
@@ -46,6 +45,25 @@
                     </div>
                 </div>
             </div>
+        </div>
+        <div class="container">
+            <h1>Sme nadšenci Hard Enduro a tu je niečo o nás.</h1>
+
+            <p>
+                Hard Enduro je extrémny šport, ktorý spočíva v jazde na motocykli v ťažkom teréne.
+                Naša stránka je určená pre všetkých nadšencov tohto športu, ktorí chcú zdieľať svoje zážitky,
+                fotografie a videá. Ak máte záujem o spoluprácu, neváhajte nás kontaktovať.
+
+
+
+            <!-- obrázok -->
+            <img
+                src="{{ asset('media/about/images/KTM 300 EXC_HARDENDURO.jpg') }}"
+                alt="Motorka v teréne"
+                class="img-rounded img-fluid"
+                style="max-width: 100%; height: auto;"
+            >
+
         </div>
     </div>
 @endsection

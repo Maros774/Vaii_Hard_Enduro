@@ -8,7 +8,7 @@
                 <img
                     src="{{ asset('storage/' . $post->image_path) }}"
                     alt="Obrázok príspevku"
-                    class="img-fluid"
+                    class="img-fluid media-rounded"
                     style="max-width:300px;"
                 >
             @endif
@@ -16,47 +16,44 @@
             @if($post->video_path)
                 <video
                     controls
-                    class="mt-2"
                     style="max-width:400px;"
+                    class="mt-2 media-rounded"
                 >
                     <source src="{{ asset('storage/' . $post->video_path) }}" type="video/mp4">
                 </video>
             @endif
 
-            <!-- Lajky, ak chceš -->
             <div class="mt-2">
-                <button
-                    class="btn btn-primary btn-sm like-button"
-                    data-id="{{ $post->id }}"
-                >
-                    Like
-                </button>
-                <span id="like-count-{{ $post->id }}">
-                    {{ $post->likes }}
-                </span> Lajkov
+                @auth
+                    <button class="btn btn-primary btn-sm like-button" data-id="{{ $post->id }}">
+                        Like
+                    </button>
+                @endauth
+                <span id="like-count-{{ $post->id }}">{{ $post->likes }}</span> Lajkov
             </div>
 
-            <!-- Tlačidlá Upraviť / Odstrániť (len autor alebo admin) -->
+            <!-- Link na detail -->
+            <a href="{{ route('posts.show', $post->id) }}" class="btn btn-info btn-sm mt-2">
+                Detaily
+            </a>
+
             @auth
-                @if (auth()->id() === $post->user_id || auth()->user()->role === 'admin')
+                <!-- Edit, Delete len pre autora/admina -->
+                @if(auth()->id() === $post->user_id || (auth()->user()->role ?? '') === 'admin')
                     <div class="mt-2">
-                        <a
-                            href="{{ route('posts.edit', $post->id) }}"
-                            class="btn btn-warning btn-sm"
-                        >
-                            Upraviť
-                        </a>
-                        <form
-                            action="{{ route('posts.destroy', $post->id) }}"
-                            method="POST"
-                            style="display:inline;"
+                        <a href="{{ route('posts.edit', $post->id) }}"
+                           class="btn btn-warning btn-sm"
+                        >Upraviť</a>
+
+                        <form action="{{ route('posts.destroy', $post->id) }}"
+                              method="POST"
+                              style="display:inline;"
                         >
                             @csrf
                             @method('DELETE')
-                            <button
-                                type="submit"
-                                class="btn btn-danger btn-sm"
-                                onclick="return confirm('Naozaj odstrániť tento príspevok?')"
+                            <button type="submit"
+                                    class="btn btn-danger btn-sm"
+                                    onclick="return confirm('Naozaj odstrániť?')"
                             >
                                 Vymazať
                             </button>

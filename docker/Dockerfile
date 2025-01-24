@@ -94,6 +94,7 @@ COPY ./php_user.ini /usr/local/etc/php/conf.d/
 
 # Copy www.conf for php-fpm
 #COPY ./www.conf /usr/local/etc/php-fpm.d
+RUN apk add --update nodejs npm
 
 # Set the correct user to fix permisssion isues
 RUN addgroup -g $GROUP_ID $GROUP

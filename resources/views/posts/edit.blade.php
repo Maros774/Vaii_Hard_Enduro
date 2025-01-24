@@ -1,32 +1,96 @@
 @extends('layouts.app')
 
 @section('content')
-    <h1>{{ isset($post) ? 'Upraviť príspevok' : 'Nový príspevok' }}</h1>
-    <form id="postForm" action="{{ isset($post) ? route('posts.update', $post->id) : route('posts.store') }}" method="POST">
-        @csrf
-        @if(isset($post))
-            @method('PUT')
+    <div class="container">
+        <h1>Upraviť príspevok</h1>
+
+        @if($errors->any())
+            <div class="alert alert-danger">
+                <ul>
+                    @foreach($errors->all() as $e)
+                        <li>{{ $e }}</li>
+                    @endforeach
+                </ul>
+            </div>
         @endif
-        <div class="mb-3">
-            <label for="title" class="form-label">Názov</label>
-            <input type="text" class="form-control" id="title" name="title" value="{{ $post->title ?? '' }}" required>
-        </div>
-        <div class="mb-3">
-            <label for="content" class="form-label">Obsah</label>
-            <textarea class="form-control" id="content" name="content" rows="5" required>{{ $post->content ?? '' }}</textarea>
-        </div>
-        <button type="submit" class="btn btn-success">{{ isset($post) ? 'Uložiť' : 'Vytvoriť' }}</button>
-    </form>
+
+        <form action="{{ route('posts.update', $post->id) }}"
+              method="POST"
+              enctype="multipart/form-data"
+              id="editForm"
+        >
+            @csrf
+            @method('PUT')
+
+            <div class="mb-3">
+                <label for="title" class="form-label">Názov</label>
+                <input
+                    type="text"
+                    class="form-control"
+                    id="title"
+                    name="title"
+                    value="{{ old('title', $post->title) }}"
+                    required
+                >
+            </div>
+
+            <div class="mb-3">
+                <label for="content" class="form-label">Obsah</label>
+                <textarea
+                    class="form-control"
+                    id="content"
+                    name="content"
+                    rows="5"
+                    required
+                >{{ old('content', $post->content) }}</textarea>
+            </div>
+
+            <div class="mb-3">
+                <label for="image" class="form-label">Nový obrázok (nepovinné)</label>
+                <input
+                    type="file"
+                    name="image"
+                    id="image"
+                    class="form-control"
+                >
+                @if($post->image_path)
+                    <p>Aktuálny obrázok:
+                        <img src="{{ asset('storage/' . $post->image_path) }}"
+                             style="max-width:100px;"
+                        >
+                    </p>
+                @endif
+            </div>
+
+            <div class="mb-3">
+                <label for="video" class="form-label">Nové video (nepovinné)</label>
+                <input
+                    type="file"
+                    name="video"
+                    id="video"
+                    class="form-control"
+                >
+                @if($post->video_path)
+                    <p>Aktuálne video:
+                        <video src="{{ asset('storage/' . $post->video_path) }}"
+                               style="max-width:150px;"
+                               controls
+                        ></video>
+                    </p>
+                @endif
+            </div>
+
+            <button type="submit" class="btn btn-success">Uložiť</button>
+        </form>
+    </div>
 @endsection
 
 @section('scripts')
     <script>
-        // Pridanie validácie do formulára
-        document.querySelector('#postForm').addEventListener('submit', function(e) {
-            const title = document.querySelector('#title');
+        document.querySelector('#editForm').addEventListener('submit', function(e) {
+            const title   = document.querySelector('#title');
             const content = document.querySelector('#content');
 
-            // Kontrola, či sú všetky polia vyplnené
             if (!title.value.trim() || !content.value.trim()) {
                 e.preventDefault();
                 alert('Všetky polia sú povinné!');

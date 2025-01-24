@@ -1,8 +1,12 @@
 console.log('Hello from app.js');
 
 document.addEventListener('DOMContentLoaded', function () {
-
-    // Validácia formulárov
+    /**
+     * 1) VALIDÁCIA FORMULÁROV
+     *
+     * Všetkým <form> v projekte, ktoré majú required inputy/textarea,
+     * pridávame jednoduchú validáciu, aby neodoslali prázdne polia.
+     */
     document.querySelectorAll('form').forEach(form => {
         form.addEventListener('submit', e => {
             const inputs = form.querySelectorAll('input[required], textarea[required]');
@@ -24,15 +28,18 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Funkcia na pripojenie listenerov na tlačidlá Like
+    /**
+     * 2) LIKE BUTTONS
+     *
+     * Funkcia na pripojenie "click" listenerov na všetky tlačidlá s triedou .like-button.
+     */
     function attachLikeListeners() {
         document.querySelectorAll('.like-button').forEach(button => {
-            button.removeEventListener('click', likeButtonHandler); // Avoid duplicate listeners
+            button.removeEventListener('click', likeButtonHandler); // pre istotu
             button.addEventListener('click', likeButtonHandler);
         });
     }
 
-    // Handler pre tlačidlá Like
     function likeButtonHandler(event) {
         const button = event.currentTarget;
         const postId = button.dataset.id;
@@ -41,9 +48,9 @@ document.addEventListener('DOMContentLoaded', function () {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },
+                'X-Requested-With': 'XMLHttpRequest', // AJ bod
+                'Accept': 'application/json'
+            }
         })
             .then(response => {
                 if (!response.ok) {
@@ -55,64 +62,56 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Aktualizácia počtu lajkov
                 const likeCount = document.querySelector(`#like-count-${postId}`);
                 if (likeCount) {
-                    if (data && data.likes !== undefined) {
+                    if (data && typeof data.likes !== 'undefined') {
                         likeCount.textContent = data.likes;
                     } else {
-                        console.error("Likes property is missing in the response data.");
+                        console.error('Likes property is missing in the response data.');
                     }
                 }
             })
             .catch(error => {
-                console.error("Error during liking:", error);
+                console.error('Error during liking:', error);
             });
     }
 
-    // Filtrovanie príspevkov
+    /**
+     * 3) FILTROVANIE PRÍSPEVKOV
+     *
+     * Volá /posts?author=..., date=... s AJAX, a očakáva partial HTML.
+     */
     const authorFilter = document.querySelector('#authorFilter');
-    const dateFilter = document.querySelector('#dateFilter');
-    const filterBtn = document.querySelector('#filterBtn');
+    const dateFilter   = document.querySelector('#dateFilter');
+    const filterBtn    = document.querySelector('#filterBtn');
+    const postList     = document.querySelector('#postList');
 
-    if (filterBtn) {
+    if (filterBtn && postList) {
         filterBtn.addEventListener('click', function () {
-            const author = authorFilter ? authorFilter.value.trim() : '';
-            const date = dateFilter ? dateFilter.value : '';
-
             const params = new URLSearchParams();
-            if (author) params.append('author', author);
-            if (date) params.append('date', date);
+            if (authorFilter && authorFilter.value.trim()) {
+                params.append('author', authorFilter.value.trim());
+            }
+            if (dateFilter && dateFilter.value) {
+                params.append('date', dateFilter.value);
+            }
 
-            fetch(`/posts?${params.toString()}`, {
+            // Voláme /posts?author=X&date=Y v móde, kde vyžiadame partial HTML
+            fetch('/posts?' + params.toString(), {
                 headers: {
-                    'Accept': 'application/json',
-                },
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'text/html'
+                }
             })
                 .then(response => {
                     if (!response.ok) {
                         throw new Error(`HTTP error! Status: ${response.status}`);
                     }
-                    return response.json();
+                    return response.text(); // partial HTML
                 })
-                .then(result => {
-                    postList.innerHTML = '';
-                    if (!result || !result.data || result.data.length === 0) {
-                        postList.innerHTML = '<p class="text-center">Žiadne výsledky.</p>';
-                    } else {
-                        result.data.forEach(post => {
-                            postList.innerHTML += `
-                                <div class="card mb-3">
-                                    <div class="card-body">
-                                        <h5 class="card-title">${post.title}</h5>
-                                        <p class="card-text">${post.content}</p>
-                                        <button class="btn btn-primary btn-sm like-button" data-id="${post.id}">Like</button>
-                                        <span id="like-count-${post.id}">${post.likes}</span> Lajkov
-                                    </div>
-                                </div>
-                            `;
-                        });
-
-                        // Re-attach Like listeners for new posts
-                        attachLikeListeners();
-                    }
+                .then(html => {
+                    // Nahradíme obsah #postList
+                    postList.innerHTML = html;
+                    // Znova pripojíme like eventy na nové tlačidlá
+                    attachLikeListeners();
                 })
                 .catch(error => {
                     console.error('Error fetching filtered posts:', error);
@@ -120,6 +119,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Initial attachment of Like listeners
+    // Na prvé načítanie pripoj "like" eventy, aby fungovali v indexe aj bez filtra
     attachLikeListeners();
 });

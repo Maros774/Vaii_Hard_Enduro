@@ -27,7 +27,6 @@
                             <a href="{{ route('posts.index') }}" class="btn btn-info me-2">Príspevky</a>
                             <a href="{{ route('about.index') }}" class="btn btn-secondary">O nás</a>
 
-
                             <hr>
                             <!-- Tlačidlo na odhlásenie -->
                             <a href="{{ route('logout') }}" class="btn btn-danger mt-3"
@@ -46,6 +45,18 @@
                     </div>
                 </div>
             </div>
+        </div>
+        <div class="container">
+            <h1>Vitajte na stránke</h1>
+
+            <!-- Tu zobrazíme obrázok -->
+            <img
+                src="{{ asset('media/about/images/KTM 300 EXC_HARDENDURO.jpg') }}"
+                alt="Motorka v teréne"
+                style="max-width: 100%; height: auto;"
+            >
+
+            <p>Obsah úvodnej stránky...</p>
         </div>
     </div>
 @endsection

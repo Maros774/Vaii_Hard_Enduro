@@ -7,4 +7,11 @@
         <li>Instagram: <a href="https://www.instagram.com/hardenduroland/">@hardenduroland</a></li>
         <li>Telefón: +421 918 390 195</li>
     </ul>
+
+    <!-- Tu zobrazíme obrázok -->
+    <img
+        src="{{ asset('media/about/images/billy-bolt_HEWC-2023-Rnd1-Xross_04411-1200.jpg') }}"
+        alt="Billy Bolt"
+        style="max-width: 100%; height: auto;"
+    >
 @endsection

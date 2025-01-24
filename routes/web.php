@@ -1,37 +1,54 @@
 <?php
 
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\PostController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\AboutController;
+use App\Http\Controllers\MotorcycleController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\PostController;
-use App\Http\Controllers\AboutController;
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\MotorcycleController;
 
-// Hlavná stránka
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+*/
+
+// Domovská stránka
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
-// Statické stránky
+// Kontakt (statická stránka)
 Route::view('/contact', 'contact')->name('contact');
 
-// Dynamické CRUD operácie pre príspevky
+/**
+ * Jedna jediná resource route pre PostController
+ * bez "only" či "except".
+ * Tým Laravel vygeneruje všetky cesty:
+ *
+ *  GET    /posts           -> index
+ *  GET    /posts/create    -> create
+ *  POST   /posts           -> store
+ *  GET    /posts/{post}    -> show
+ *  GET    /posts/{post}/edit -> edit
+ *  PUT    /posts/{post}    -> update
+ *  DELETE /posts/{post}    -> destroy
+ */
 Route::resource('posts', PostController::class);
-//Route::get('/posts/search', [PostController::class, 'search'])->name('posts.search');
-Route::post('/posts/{post}/like', [PostController::class, 'like'])->name('posts.like');
 
-// Autentifikácia
-Auth::routes();
+// Ďalšie osobitné akcie chránené prihlásením
+Route::middleware('auth')->group(function () {
+    // Lajkovanie
+    Route::post('/posts/{post}/like', [PostController::class, 'like'])->name('posts.like');
 
-// Chránené stránky (dashboard pre prihlásených používateľov)
-Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard', [HomeController::class, 'index'])->name('dashboard');
+    // Komentáre
+    Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('comments.store');
+    Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
 });
 
-// Verejné stránky - O nás (pre všetkých)
+// Verejná stránka O nás
 Route::get('/about', [AboutController::class, 'index'])->name('about.index');
 
-
-// Adminské operácie pre sekciu "O nás"
+// Admin prefix pre O nás
 Route::middleware('admin')->prefix('about')->group(function () {
     Route::get('/create', [AboutController::class, 'create'])->name('about.create');
     Route::post('/', [AboutController::class, 'store'])->name('about.store');
@@ -40,13 +57,13 @@ Route::middleware('admin')->prefix('about')->group(function () {
     Route::delete('/{about}', [AboutController::class, 'destroy'])->name('about.destroy');
 });
 
-// Adminské operácie pre sekciu "Motocykle"
+// Motocykle
 Route::resource('motorcycles', MotorcycleController::class);
 
+// Autentifikácia (login, register atď.)
+Auth::routes();
 
-// Operácie pre komentáre
-Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('comments.store');
-Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
-
-
-//Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
+// Dashboard (napr. pre prihlásených)
+Route::middleware('auth')->group(function () {
+    Route::get('/dashboard', [HomeController::class, 'index'])->name('dashboard');
+});

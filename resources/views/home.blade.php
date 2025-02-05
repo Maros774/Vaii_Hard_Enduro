@@ -55,7 +55,6 @@
                 fotografie a videá. Ak máte záujem o spoluprácu, neváhajte nás kontaktovať.
 
 
-
             <!-- obrázok -->
             <img
                 src="{{ asset('media/about/images/KTM 300 EXC_HARDENDURO.jpg') }}"

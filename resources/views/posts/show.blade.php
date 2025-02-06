@@ -10,7 +10,7 @@
             <img
                 src="{{ asset('storage/' . $post->image_path) }}"
                 alt="Obrázok príspevku"
-                class="img-fluid mt-3 custom-media media-rounded"
+                class="img-fluid mt-3 custom-media-detail media-rounded"
             />
         @endif
 
@@ -18,7 +18,7 @@
         @if ($post->video_path)
             <video
                 controls
-                class="mt-3 custom-media media-rounded"
+                class="mt-3 custom-media-detail media-rounded"
             >
                 <source src="{{ asset('storage/' . $post->video_path) }}" type="video/mp4">
             </video>

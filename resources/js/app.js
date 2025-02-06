@@ -91,6 +91,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const dateFilter   = document.querySelector('#dateFilter');
     const filterBtn    = document.querySelector('#filterBtn');
     const postList     = document.querySelector('#postList');
+    const searchTerm = document.querySelector('#searchTerm');
 
     if (filterBtn && postList) {
         filterBtn.addEventListener('click', function () {
@@ -100,6 +101,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             if (dateFilter && dateFilter.value) {
                 params.append('date', dateFilter.value);
+            }
+            if (searchTerm && searchTerm.value.trim()) {
+                params.append('searchTerm', searchTerm.value.trim());
             }
 
             // Voláme /posts?author=X&date=Y v móde, kde vyžiadame partial HTML

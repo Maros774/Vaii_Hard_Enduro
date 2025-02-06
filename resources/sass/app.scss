@@ -130,15 +130,15 @@ a:hover {
 }
 
 /* Footer */
-.footer {
-    background-color: #2c3e50;
+.footer-bar {
     color: white;
     text-align: center;
-    padding: 20px;
-    position: sticky;
-    bottom: 0;
+    padding: 20px 0;
+    margin-top: auto;
     width: 100%;
+    max-height: 50px;
 }
+
 
 /* Scrollbar */
 ::-webkit-scrollbar {
@@ -146,7 +146,7 @@ a:hover {
 }
 
 ::-webkit-scrollbar-track {
-    background: #2c3e50; /* Rovnaká farba ako footer */
+    background: #222529; /* Rovnaká farba ako footer */
 }
 
 ::-webkit-scrollbar-thumb {
@@ -166,4 +166,26 @@ a:hover {
 .img-rounded:hover {
     transform: scale(1.05); /* Jemné zväčšenie pri hover */
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.container {
+    max-width: 800px;
+}
+
+.custom-media {
+    max-height: 600px;
+}
+
+.header-bar {
+    h1 {
+        font-size: 1.5rem;
+        font-weight: bold;
+        flex: auto;
+    }
+    h2 {
+        font-size: 1rem;
+        flex: auto;
+        width: auto;
+    }
+    max-height: 100px;
 }

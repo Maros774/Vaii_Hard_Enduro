@@ -28,7 +28,7 @@
                             <!-- Video s "media-rounded" -->
                             <video
                                 controls
-                                class="w-100 mb-3 media-rounded"
+                                class="w-100 mb-3 media-rounded custom-media"
                             >
                                 <source src="{{ asset('storage/' . $about->media) }}" type="video/mp4">
                                 Váš prehliadač nepodporuje prehrávanie videí.
